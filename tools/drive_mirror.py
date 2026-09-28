@@ -49,15 +49,21 @@ def gio_children(gvfs_dir: str) -> dict[str, tuple[str, int, bool]]:
 
 
 def ensure_folder(parent: str, title: str) -> str:
+    for attempt in range(8):
+        children = gio_children(parent)
+        if title in children:
+            path, _, is_dir = children[title]
+            if not is_dir:
+                raise RuntimeError(f"Drive entry '{title}' under {parent} is not a folder")
+            return path
+        if attempt == 0:
+            subprocess.run(["gio", "mkdir", f"{parent}/{title}"], check=True)
+        import time
+        time.sleep(1.5)
     children = gio_children(parent)
     if title in children:
-        path, _, is_dir = children[title]
-        if not is_dir:
-            raise RuntimeError(f"Drive entry '{title}' under {parent} is not a folder")
-        return path
-    subprocess.run(["gio", "mkdir", f"{parent}/{title}"], check=True)
-    path, _, _ = gio_children(parent)[title]
-    return path
+        return children[title][0]
+    raise RuntimeError(f"Drive entry '{title}' under {parent} was not found after mkdir retries")
 
 
 def sha256(path: Path) -> str:
