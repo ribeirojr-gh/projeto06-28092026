@@ -101,15 +101,17 @@ run_reviewed_gate outputs/fe_bulk_kpoint_summary.json \
 run_reviewed_gate outputs/fe_bulk_kpoint_refinement_summary.json \
   scripts/10_fe_bulk_kpoint_refinement.py logs/10_fe_bulk_kpoint_refinement.log \
   "k-point refinement 14³–20³ (script 10)"
-echo "[Step 03] Performing Gate 11: PAO basis and EnergyShift screening at 16x16x16 k-grid and 1500 Ry cutoff."
-echo "[Step 03] Test matrix: DZP (0.005, 0.010, 0.020, 0.050 Ry) + (SZ, DZ, TZP at 0.020 Ry)."
+run_reviewed_gate outputs/fe_bulk_pao_basis_summary.json \
+  scripts/11_fe_bulk_pao_basis_screen.py logs/11_fe_bulk_pao_basis_screen.log \
+  "PAO basis and EnergyShift screen (script 11)"
+echo "[Step 03] Performing Gate 12: Equation of State E(a) and equilibrium lattice constant a_0."
+echo "[Step 03] Sampled lattice constants a in [2.780, 2.820, 2.840, 2.863, 2.880, 2.910, 2.950] Å."
 echo "[Step 03] MPI ranks: $SIESTA_MPI_RANKS; OpenMP and BLAS: 1 thread per rank."
-echo "[Step 03] No final numerical convergence, lattice relaxation or slab calculation."
-"$PYTHON_BIN" scripts/11_fe_bulk_pao_basis_screen.py 2>&1 | tee logs/11_fe_bulk_pao_basis_screen.log
-for result in outputs/fe_bulk_pao_basis_summary.json outputs/fe_bulk_pao_basis_summary.csv outputs/fe_bulk_pao_basis_report.txt logs/11_fe_bulk_pao_basis_screen.log; do
+"$PYTHON_BIN" scripts/12_fe_bulk_eos.py 2>&1 | tee logs/12_fe_bulk_eos.log
+for result in outputs/fe_bulk_eos_summary.json outputs/fe_bulk_eos_summary.csv outputs/fe_bulk_eos_report.txt outputs/fe_bulk_eos.png logs/12_fe_bulk_eos.log; do
   if [[ ! -s "$result" ]]; then
-    echo "ERROR: PAO basis screening result missing or empty: $result" >&2
+    echo "ERROR: EOS result missing or empty: $result" >&2
     exit 20
   fi
 done
-echo "[Step 03] Gate 11 PAO basis screening finished. Return summary JSON, report TXT and wrapper log for review."
+echo "[Step 03] Gate 12 Equation of State finished. Return summary JSON, report TXT, plot PNG and wrapper log for review."
