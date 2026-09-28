@@ -95,15 +95,18 @@ run_reviewed_gate outputs/fe_bulk_mesh_cutoff_extension_summary.json \
 run_reviewed_gate outputs/fe_bulk_realized_grid_summary.json \
   scripts/08_fe_bulk_realized_grid_screen.py logs/08_fe_bulk_realized_grid.log \
   "realized FFT-grid screen 850–1500 Ry (script 08)"
-echo "[Step 03] Performing k-point screening at provisional requested MeshCutoff=1500 Ry."
-echo "[Step 03] k-point grids: 6x6x6, 8x8x8, 10x10x10, 12x12x12, 14x14x14."
+run_reviewed_gate outputs/fe_bulk_kpoint_summary.json \
+  scripts/09_fe_bulk_kpoint_screen.py logs/09_fe_bulk_kpoint_screen.log \
+  "k-point screen 6x6x6–14x14x14 (script 09)"
+echo "[Step 03] Performing Gate 10A: k-point refinement 14³–20³ at provisional MeshCutoff=1500 Ry (72³ FFT)."
+echo "[Step 03] k-point grids: 14x14x14 (repeat anchor), 16x16x16, 18x18x18, 20x20x20."
 echo "[Step 03] MPI ranks: $SIESTA_MPI_RANKS; OpenMP and BLAS: 1 thread per rank."
 echo "[Step 03] No final numerical convergence, lattice relaxation or slab calculation."
-"$PYTHON_BIN" scripts/09_fe_bulk_kpoint_screen.py 2>&1 | tee logs/09_fe_bulk_kpoint_screen.log
-for result in outputs/fe_bulk_kpoint_summary.json outputs/fe_bulk_kpoint_summary.csv outputs/fe_bulk_kpoint_report.txt logs/09_fe_bulk_kpoint_screen.log; do
+"$PYTHON_BIN" scripts/10_fe_bulk_kpoint_refinement.py 2>&1 | tee logs/10_fe_bulk_kpoint_refinement.log
+for result in outputs/fe_bulk_kpoint_refinement_summary.json outputs/fe_bulk_kpoint_refinement_summary.csv outputs/fe_bulk_kpoint_refinement_report.txt logs/10_fe_bulk_kpoint_refinement.log; do
   if [[ ! -s "$result" ]]; then
-    echo "ERROR: k-point screening result missing or empty: $result" >&2
+    echo "ERROR: k-point refinement result missing or empty: $result" >&2
     exit 20
   fi
 done
-echo "[Step 03] k-point screening finished. Return k-point summary JSON, report TXT and wrapper log for review."
+echo "[Step 03] Gate 10A k-point refinement finished. Return summary JSON, report TXT and wrapper log for review."

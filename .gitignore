@@ -4,3 +4,5 @@ __pycache__/
 outputs/
 logs/
 .env
+DRIVE_MANIFEST.json
+ID.txt
