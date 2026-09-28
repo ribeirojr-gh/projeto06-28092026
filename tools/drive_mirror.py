@@ -85,7 +85,7 @@ def mirror(src: Path, dst: str, force: bool, stats: dict) -> None:
             if rsize == size and not force:
                 stats["skipped"] += 1
                 continue
-            subprocess.run(["gio", "copy", "-f", str(item), remote], check=True)
+            subprocess.run(["gio", "copy", str(item), remote], check=True)
             stats["updated"] += 1
         else:
             subprocess.run(["gio", "copy", str(item), f"{dst}/{item.name}"], check=True)
