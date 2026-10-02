@@ -6,3 +6,4 @@ logs/
 .env
 DRIVE_MANIFEST.json
 ID.txt
+runs/

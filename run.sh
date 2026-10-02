@@ -6,9 +6,9 @@ cd "$ROOT_DIR"
 
 PYTHON_BIN="${PYTHON_BIN:-python3}"
 export SIESTA_PS_PATH="${SIESTA_PS_PATH:-$HOME/Pacotes/PSEUDOS/DOJO-PSML}"
-SIESTA_MPI_RANKS="${SIESTA_MPI_RANKS:-2}"
+SIESTA_MPI_RANKS="${SIESTA_MPI_RANKS:-4}"
 if ! [[ "$SIESTA_MPI_RANKS" =~ ^[1-4]$ ]]; then
-  echo "ERROR: this screening permits 1–4 MPI ranks (default 2)." >&2
+  echo "ERROR: this screening permits 1–4 MPI ranks (default 4)." >&2
   exit 10
 fi
 export SIESTA_MPI_RANKS OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1
@@ -104,14 +104,18 @@ run_reviewed_gate outputs/fe_bulk_kpoint_refinement_summary.json \
 run_reviewed_gate outputs/fe_bulk_pao_basis_summary.json \
   scripts/11_fe_bulk_pao_basis_screen.py logs/11_fe_bulk_pao_basis_screen.log \
   "PAO basis and EnergyShift screen (script 11)"
-echo "[Step 03] Performing Gate 12: Equation of State E(a) and equilibrium lattice constant a_0."
-echo "[Step 03] Sampled lattice constants a in [2.780, 2.820, 2.840, 2.863, 2.880, 2.910, 2.950] Å."
-echo "[Step 03] MPI ranks: $SIESTA_MPI_RANKS; OpenMP and BLAS: 1 thread per rank."
-"$PYTHON_BIN" scripts/12_fe_bulk_eos.py 2>&1 | tee logs/12_fe_bulk_eos.log
-for result in outputs/fe_bulk_eos_summary.json outputs/fe_bulk_eos_summary.csv outputs/fe_bulk_eos_report.txt outputs/fe_bulk_eos.png logs/12_fe_bulk_eos.log; do
+run_reviewed_gate outputs/fe_bulk_eos_summary.json \
+  scripts/12_fe_bulk_eos.py logs/12_fe_bulk_eos.log \
+  "Equation of State E(a) (script 12)"
+
+echo "[Step 04] Performing Gate 13: Fe(110) surface relaxation, surface energy, and work function."
+echo "[Step 04] Slabs: L07_V15A, L09_V15A, L11_V15A, L07_V20A."
+echo "[Step 04] MPI ranks: $SIESTA_MPI_RANKS; OpenMP and BLAS: 1 thread per rank."
+"$PYTHON_BIN" scripts/13_fe110_surface_relaxation.py 2>&1 | tee logs/13_fe110_surface_relaxation.log
+for result in outputs/fe110_surface_relaxation_summary.json outputs/fe110_surface_relaxation_summary.csv outputs/fe110_surface_relaxation_report.txt outputs/fe110_surface_relaxation.png logs/13_fe110_surface_relaxation.log; do
   if [[ ! -s "$result" ]]; then
-    echo "ERROR: EOS result missing or empty: $result" >&2
-    exit 20
+    echo "ERROR: Fe(110) surface relaxation result missing or empty: $result" >&2
+    exit 21
   fi
 done
-echo "[Step 03] Gate 12 Equation of State finished. Return summary JSON, report TXT, plot PNG and wrapper log for review."
+echo "[Step 04] Gate 13 Fe(110) surface relaxation finished. Summary JSON, report TXT, plot PNG and wrapper log ready for review."
